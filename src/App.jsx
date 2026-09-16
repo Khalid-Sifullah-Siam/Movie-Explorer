@@ -4,12 +4,14 @@ import MovieListingPage from './pages/MovieListingPage';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/movies" element={<MovieListingPage />} />
-      </Routes>
-    </BrowserRouter>
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/movies" element={<MovieListingPage />} />
+        </Routes>
+      </BrowserRouter>
+    </div>
   );
 }
 
