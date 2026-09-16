@@ -24,6 +24,14 @@ export default function Footer() {
             <Link to="/movies" className="hover:text-amber-400 transition-colors">
               Movies
             </Link>
+            <a
+              href="https://github.com/Khalid-Sifullah-Siam/Movie-Explorer"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-amber-400 transition-colors"
+            >
+              GitHub
+            </a>
           </div>
         </div>
       </div>

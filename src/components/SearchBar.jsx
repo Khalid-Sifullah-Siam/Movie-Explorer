@@ -13,16 +13,34 @@ const genres = [
   'Horror',
 ];
 
-export default function SearchBar({ onSearch, selectedGenre, onSelectGenre }) {
-  const [query, setQuery] = useState('');
+export default function SearchBar({
+  onSearch,
+  selectedGenre,
+  onSelectGenre,
+  initialQuery = '',
+}) {
+  const [prevInitialQuery, setPrevInitialQuery] = useState(initialQuery);
+  const [query, setQuery] = useState(initialQuery);
   const debounceTimer = useRef(null);
+  const isUserTyping = useRef(false);
+
+  // Sync internal input state when initialQuery changes (URL change, back/forward, reset)
+  if (initialQuery !== prevInitialQuery) {
+    setPrevInitialQuery(initialQuery);
+    setQuery(initialQuery);
+  }
 
   useEffect(() => {
+    if (!isUserTyping.current) {
+      return;
+    }
+
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
     }
 
     debounceTimer.current = setTimeout(() => {
+      isUserTyping.current = false;
       onSearch(query.trim());
     }, 350);
 
@@ -34,6 +52,10 @@ export default function SearchBar({ onSearch, selectedGenre, onSelectGenre }) {
   }, [query, onSearch]);
 
   const handleClear = () => {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+    isUserTyping.current = false;
     setQuery('');
     onSearch('');
   };
@@ -56,7 +78,10 @@ export default function SearchBar({ onSearch, selectedGenre, onSelectGenre }) {
         <input
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            isUserTyping.current = true;
+            setQuery(e.target.value);
+          }}
           placeholder="Search for a movie..."
           className="w-full py-3.5 pr-10 bg-transparent text-white placeholder-slate-500 text-base focus:outline-none"
         />

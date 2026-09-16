@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import SearchBar from '../components/SearchBar';
@@ -7,56 +8,92 @@ import MovieModal from '../components/MovieModal';
 import { fetchAllShows, searchShows } from '../api/tvmaze';
 
 export default function MovieListingPage() {
-  const [shows, setShows] = useState([]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const queryParam = searchParams.get('q') ?? searchParams.get('search') ?? '';
+
+  const showsRef = useRef([]);
   const [currentShows, setCurrentShows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedShow, setSelectedShow] = useState(null);
   const [error, setError] = useState(null);
   const [selectedGenre, setSelectedGenre] = useState('All');
   const [sortBy, setSortBy] = useState('default');
-  const [searchQuery, setSearchQuery] = useState('');
 
-  // Fetch initial shows
+  // Load data based on URL queryParam
   useEffect(() => {
-    const loadInitialShows = async () => {
+    let isCurrent = true;
+
+    const loadData = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await fetchAllShows();
-        setShows(data);
-        setCurrentShows(data);
+
+        const cleanQuery = queryParam.trim();
+
+        if (!cleanQuery) {
+          if (showsRef.current.length > 0) {
+            setCurrentShows(showsRef.current);
+            setLoading(false);
+          } else {
+            const data = await fetchAllShows();
+            if (!isCurrent) return;
+            showsRef.current = data;
+            setCurrentShows(data);
+            setLoading(false);
+          }
+        } else {
+          const results = await searchShows(cleanQuery);
+          if (!isCurrent) return;
+          setCurrentShows(results);
+          setLoading(false);
+
+          // Preload complete catalogue in background if not already cached
+          if (showsRef.current.length === 0) {
+            fetchAllShows()
+              .then((data) => {
+                if (isCurrent) showsRef.current = data;
+              })
+              .catch((err) => console.error(err));
+          }
+        }
       } catch (err) {
-        setError('Failed to fetch movies. Please check your internet connection.');
+        if (!isCurrent) return;
+        setError(
+          queryParam.trim()
+            ? 'Error while searching. Please try again.'
+            : 'Failed to fetch movies. Please check your internet connection.'
+        );
         console.error(err);
-      } finally {
         setLoading(false);
       }
     };
 
-    loadInitialShows();
-  }, []);
+    loadData();
 
-  // Search handler
+    return () => {
+      isCurrent = false;
+    };
+  }, [queryParam]);
+
+  // Update URL search params when user types
   const handleSearch = useCallback(
-    async (query) => {
-      setSearchQuery(query);
-      setError(null);
-      try {
-        setLoading(true);
-        if (!query) {
-          setCurrentShows(shows);
-        } else {
-          const results = await searchShows(query);
-          setCurrentShows(results);
-        }
-      } catch (err) {
-        setError('Error while searching. Please try again.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+    (query) => {
+      setSearchParams(
+        (prev) => {
+          const newParams = new URLSearchParams(prev);
+          if (query) {
+            newParams.set('q', query);
+            newParams.delete('search');
+          } else {
+            newParams.delete('q');
+            newParams.delete('search');
+          }
+          return newParams;
+        },
+        { replace: true }
+      );
     },
-    [shows]
+    [setSearchParams]
   );
 
   // Filter and sort items
@@ -83,8 +120,10 @@ export default function MovieListingPage() {
   const handleReset = () => {
     setSelectedGenre('All');
     setSortBy('default');
-    setSearchQuery('');
-    setCurrentShows(shows);
+    setSearchParams({}, { replace: true });
+    if (showsRef.current.length > 0) {
+      setCurrentShows(showsRef.current);
+    }
   };
 
   return (
@@ -104,6 +143,7 @@ export default function MovieListingPage() {
 
         {/* Search input and genres */}
         <SearchBar
+          initialQuery={queryParam}
           onSearch={handleSearch}
           selectedGenre={selectedGenre}
           onSelectGenre={(genre) => setSelectedGenre(genre)}
@@ -113,7 +153,7 @@ export default function MovieListingPage() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-800 text-xs sm:text-sm">
           <div className="text-slate-400">
             Showing <span className="text-white font-semibold">{filteredShows.length}</span> titles
-            {searchQuery && <span> for "{searchQuery}"</span>}
+            {queryParam.trim() && <span> for "{queryParam.trim()}"</span>}
           </div>
 
           {/* Sort dropdown */}
