@@ -2,6 +2,8 @@
 
 A fully responsive movie/TV show explorer application built with React, Tailwind CSS, and the TVMaze API.
 
+**Live Demo:** [https://movie-explorer-three-rouge.vercel.app](https://movie-explorer-three-rouge.vercel.app)
+
 ## Features
 
 - **Home Page** — Cinematic hero banner with CTA, navbar, and footer
