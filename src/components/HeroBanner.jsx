@@ -24,7 +24,7 @@ export default function HeroBanner() {
         <div className="mb-6 text-6xl sm:text-7xl animate-bounce">🎬</div>
 
         {/* Title */}
-        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold text-white mb-6 tracking-tight">
+        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold text-white mb-6 tracking-tight uppercase">
           Discover{' '}
           <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
             Movies
@@ -33,7 +33,7 @@ export default function HeroBanner() {
 
         {/* Subtitle */}
         <p className="text-lg sm:text-xl text-gray-300 mb-10 max-w-xl mx-auto leading-relaxed">
-          Explore and discover your favorite movies from around the world. Browse thousands of titles, find ratings, and read summaries.
+          Explore and discover your favorite movies from around the world.
         </p>
 
         {/* CTA Button */}

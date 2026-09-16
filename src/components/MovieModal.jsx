@@ -112,7 +112,7 @@ export default function MovieModal({ show, onClose }) {
 
             {/* Overview */}
             <div>
-              <h3 className="text-lg font-semibold text-white mb-2">Overview</h3>
+              <h3 className="text-lg font-semibold text-white mb-2">Overview:</h3>
               <p className="text-gray-300 leading-relaxed text-sm">
                 {stripHtml(show.summary)}
               </p>
